@@ -1,0 +1,92 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      retries: 5
+    restart: always
+  airflow-webserver:
+    image: "apache/airflow:2.2.2"
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CORE__FERNET_KEY: ''
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'false'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__CORE__STORE_DAG_CODE: 'true'
+      AIRFLOW__LOGGING__REMOTE_LOGGING: 'false'
+      AIRFLOW__WEBSERVER__EXPOSE_CONFIG: 'true'
+      AIRFLOW__CORE__DAGS_FOLDER: "/opt/airflow/dags"
+      AIRFLOW__CORE__MIN_SERIALIZED_DAG_UPDATE_INTERVAL: "1"
+      AIRFLOW__CORE__MIN_SERIALIZED_DAG_FETCH_INTERVAL: "1"
+      AIRFLOW__SCHEDULER__SCHEDULER_HEARTBEAT_SEC: "2"
+      AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL: "5"
+      AIRFLOW__SCHEDULER__MIN_FILE_PROCESS_INTERVAL: "5"
+      AIRFLOW__SCHEDULER__PROCESSOR_POLL_INTERVAL: "1"
+      AIRFLOW_HOME: "/opt/airflow"
+      AIRFLOW_LOCAL: "true"
+      PYTHONUNBUFFERED: '1'
+      TEST_AIRFLOW_USER: "username"
+      TEST_AIRFLOW_PASSWORD: "password"
+    user: "airflow:airflow"
+    command: ["/usr/local/bin/start-local-webserver.sh"]
+    ports: ["8080:8080"]
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 10s
+      retries: 2
+    restart: always
+    volumes:
+      - logs:/opt/airflow/logs
+    depends_on:
+      - airflow-scheduler
+  airflow-scheduler:
+    image: "apache/airflow:2.2.2"
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CORE__FERNET_KEY: ''
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'false'
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__CORE__STORE_DAG_CODE: 'true'
+      AIRFLOW__LOGGING__REMOTE_LOGGING: 'false'
+      AIRFLOW__WEBSERVER__EXPOSE_CONFIG: 'true'
+      AIRFLOW__CORE__DAGS_FOLDER: "/opt/airflow/dags"
+      AIRFLOW__CORE__MIN_SERIALIZED_DAG_UPDATE_INTERVAL: "1"
+      AIRFLOW__CORE__MIN_SERIALIZED_DAG_FETCH_INTERVAL: "1"
+      AIRFLOW__SCHEDULER__SCHEDULER_HEARTBEAT_SEC: "2"
+      AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL: "5"
+      AIRFLOW__SCHEDULER__MIN_FILE_PROCESS_INTERVAL: "5"
+      AIRFLOW__SCHEDULER__PROCESSOR_POLL_INTERVAL: "1"
+      AIRFLOW_HOME: "/opt/airflow"
+      AIRFLOW_LOCAL: "true"
+      PYTHONUNBUFFERED: '1'
+      TEST_AIRFLOW_USER: "username"
+      TEST_AIRFLOW_PASSWORD: "password"
+    user: "airflow:airflow"
+    command: ["/usr/local/bin/start-local-scheduler.sh"]
+    restart: always
+    healthcheck:
+      test: ["CMD", "python3", "/opt/airflow/liveness_check.py"]
+      start_period: 10s
+      interval: 10s
+      timeout: 10s
+      retries: 2
+    volumes:
+      #- /root:/tmp/.kube
+      #- $TEST_AIRFLOW_DAGS_PATH:/opt/airflow/dags:ro
+      - logs:/opt/airflow/logs
+    depends_on:
+      - postgres
+volumes:
+  logs:
+ingress:
+  service: airflow-webserver
+  port: 8080
