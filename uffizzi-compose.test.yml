@@ -5,8 +5,8 @@ services:
   postgres:
     image: postgres:9.6
     env_file:
-    envs/env1.env
-    ./envs/env2.env
+    - envs/env1.env
+    - ./envs/env2.env
     deploy:
       resources:
         limits:
