@@ -5,7 +5,7 @@ services:
     image: nginx:latest
     configs:
       - source: vote.conf
-        target: /etc/nginx/conf.d/vote.conf
+        target: /etc/nginx/conf.d
   
   redis:
     image: redis:latest
