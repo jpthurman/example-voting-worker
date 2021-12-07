@@ -20,7 +20,7 @@ services:
   
   vote:
     build:
-      context: https://github.com/UffizziCloud/example-voting-vote:main
+      context: https://github.com/jpthurman/example-voting-vote:main
       dockerfile: Dockerfile
     deploy:
       resources:
@@ -29,16 +29,16 @@ services:
 
   worker:
     build:
-      context: https://github.com/UffizziCloud/example-voting-worker:main
+      context: https://github.com/jpthurman/example-voting-worker:main
       dockerfile: Dockerfile
     deploy:
       resources:
         limits:
           memory: 250M
  
- result:
+  result:
     build:
-      context: https://github.com/UffizziCloud/example-voting-result:main
+      context: https://github.com/jpthurman/example-voting-result:main
       dockerfile: Dockerfile
       
 continuous_preview:
