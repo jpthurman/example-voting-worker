@@ -3,14 +3,14 @@ version: "3"
 services:
   nginx:
     network_mode: "host"
-    image: nginx:1.20
+    image: nginx
     configs:
-      - source: voteconf
+      - source: vote.conf
         target: /etc/nginx/conf.d/vote.conf
   
   redis:
     network_mode: "host"
-    image: redis:latest
+    image: redis
 
   postgres:
     network_mode: "host"
@@ -36,5 +36,5 @@ services:
       PORT: 8088
 
 configs:
-  voteconf:
+  vote.conf:
     file: ./vote.conf
